@@ -15,6 +15,27 @@ function getMultipleSelected(selectEl)
 	});
 };
 
+function createTypeFilter(types) 
+{
+	return function(type) {
+		return types.indexOf(type) >= 0;
+	};
+};
+
+function createAreaFilter(areas)
+{
+	return function(areaVal) {
+		return areaVal.split(';').filter(function(a) {
+			return areas.indexOf(a) !== -1;
+		}).length > 0;
+	};
+}
+
+function defaultFilter()
+{
+	return true;
+}
+
 function showStreets()
 {
 	var streets = getAllStreets(),
@@ -25,9 +46,27 @@ function showStreets()
 		typeBox = document.getElementById('selTypes'),
 		streetBox = document.getElementById("street_list");
 
+	var selectedDistricts = getMultipleSelected(districtBox),
+		selectedTypes = getMultipleSelected(typeBox);
+
 	streetBox.innerHTML = '';
 
+	var areaFilter = (selectedDistricts.length > 0)
+		? createAreaFilter(selectedDistricts)
+		: defaultFilter;
+	var typeFilter = (selectedTypes.length > 0)
+		? createTypeFilter(selectedTypes)
+		: defaultFilter;
 
+	for(var i=0,sl=streets.length; i<sl; i++) {
+		if(!areaFilter(streetsCodes[i]) || !typeFilter(streetsTypes[i]))
+			continue;
+
+		var p = document.createElement("p");
+		p.innerText = streets[i];
+		p.className = "c" + streetsTypes[i];
+		streetBox.appendChild(p);
+	}
 };
 
 function showStreets_old() {
@@ -159,7 +198,7 @@ function sortSelect(selElem) {
 			
 			<p>Выбор типа</p>
 			<select size="20" id="selTypes" onchange="showStreets()" multiple>
-				<option value="000" selected>Все</option>
+				<!-- <option value="000" selected>Все</option> -->
 				<option value="001">улица</option>
 				<option value="002">переулок</option>
 				<option value="003">проезд</option>
